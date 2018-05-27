@@ -20,7 +20,7 @@ CPPFLAGS += -Iinclude/
 # ##############################################################################
 # Targets
 
-all = ftcat ft2csv ftdump ftsort st-dump st-job-stats
+all = ftcat ft2csv ftdump ftsort st-dump st-dag-response st-e2e-response st-job-stats
 
 .PHONY: all clean
 all: ${all}
@@ -42,6 +42,14 @@ ftsort: ${obj-ftsort}
 obj-st-dump = stdump.o load.o eheap.o util.o
 st-dump: ${obj-st-dump}
 	$(CC) $(LDFLAGS) -o $@ ${obj-st-dump}  # $(LOADLIBES) $(LDLIBS)
+
+obj-st-dag-response = stdag_response.o load.o eheap.o util.o
+st-dag-response: ${obj-st-dag-response}
+	$(CC) $(LDFLAGS) -o $@ ${obj-st-dag-response}  # $(LOADLIBES) $(LDLIBS)
+
+obj-st-e2e-response = ste2e_response.o load.o eheap.o util.o
+st-e2e-response: ${obj-st-e2e-response}
+	$(CC) $(LDFLAGS) -o $@ ${obj-st-e2e-response}  # $(LOADLIBES) $(LDLIBS)
 
 obj-st-job-stats = job_stats.o load.o eheap.o util.o
 st-job-stats: ${obj-st-job-stats}

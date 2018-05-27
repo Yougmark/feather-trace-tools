@@ -77,6 +77,7 @@ NUM_CPUS=`egrep -c '^processor|online'   /proc/cpuinfo`
 # 510 - sched_trace_sys_release
 # 511 - sched_trace_last_suspension_as_completion
 ST_IDS="501 502 503 504 505 506 507 508 509 510 511"
+#ST_IDS="501 502 503 506 510 511"
 
 DIR=`mktemp -d` || die "mktemp failed"
 
@@ -87,6 +88,7 @@ for x in `seq 0 $(($NUM_CPUS - 1))`
 do
     TARGET="schedule_host=`hostname`_scheduler=${SCHEDULER}_trace=${TAG}_cpu=${x}.bin"
     echo -n "CPU $x: "
+    #sudo ~/litmus/liblitmus/rt_launch -e -d 1 1 1 -- $FTCAT -p "$DIR/cpu${x}.pid" "$FTDEV$x" $ST_IDS > "$TARGET"  &
     $FTCAT -p "$DIR/cpu${x}.pid" "$FTDEV$x" $ST_IDS > "$TARGET"  &
     PIDS="$PIDS $!"
     echo $! "> $TARGET [$?]"

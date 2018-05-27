@@ -28,7 +28,8 @@ static void usage(const char *str)
 	}
 }
 
-#define OPTSTR "rcfh"
+#define MAX_CONCURRENT_JOBS 30
+#define OPTSTR "rcfhs:e:"
 
 int main(int argc, char** argv)
 {
@@ -36,6 +37,9 @@ int main(int argc, char** argv)
 	struct heap *h;
 	struct heap_node *hn, *first = NULL;
 	u64 time;
+    u64 first_time = 0;
+    int start_pid = 0;
+    int end_pid = 0;
 	struct st_event_record *rec;
 	int find_release = 0;
 	int show_count = 0;
@@ -56,6 +60,12 @@ int main(int argc, char** argv)
 		case 'h':
 			usage(NULL);
 			break;
+        case 's':
+            start_pid = atoi(optarg);
+            break;
+        case 'e':
+            end_pid = atoi(optarg);
+            break;
 		case ':':
 			usage("Argument missing.");
 			break;
@@ -72,22 +82,19 @@ int main(int argc, char** argv)
 		return 1;
 	if (show_count)
 		printf("Loaded %u events.\n", count);
+
 	while ((hn = heap_take(earlier_event, h))) {
 		time =  event_time(heap_node_value(hn));
 		if (time != 0 && !first)
 			first = hn;
 		time /= 1000; /* convert to microseconds */
-		if (!find_release) {
-			printf("[%12llu] ", (unsigned long long) time);
-			print_event(heap_node_value(hn));
-		} else {
-			rec = heap_node_value(hn);
-			if (rec->hdr.type == ST_SYS_RELEASE) {
-				printf("%6.2fms\n", rec->data.raw[1] / 1000000.0);
-				find_release = 0;
-				break;
-			}
-		}
+        rec = heap_node_value(hn);
+        if (rec->hdr.type == ST_RELEASE && rec->hdr.pid == start_pid && rec->hdr.job == 2) {
+            first_time = time;
+        } else if (rec->hdr.type == ST_COMPLETION && rec->hdr.pid == end_pid) {
+            printf("%llu\n",
+                    (unsigned long long) (time - 40000 * (rec->hdr.job - 2) - first_time));
+        }
 	}
 	if (find_release && use_first_nonzero && first) {
 		rec = heap_node_value(first);
